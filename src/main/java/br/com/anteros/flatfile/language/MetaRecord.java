@@ -63,6 +63,9 @@ public class MetaRecord {
 	
 	@XmlTransient
 	protected Field field;
+	
+	@XmlTransient
+	protected String[] groups;
 
 	/**
 	 * Gets the value of the groupOfFields property.
@@ -179,6 +182,18 @@ public class MetaRecord {
 
 	public void setField(Field field) {
 		this.field = field;
+	}
+
+	public String[] getGroups() {
+		return groups;
+	}
+
+	public void setGroups(String[] groups) {
+		this.groups = groups;
+	}
+
+	public Boolean getRepeatable() {
+		return repeatable;
 	}
 
 }

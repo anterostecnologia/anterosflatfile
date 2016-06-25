@@ -28,5 +28,6 @@ public @interface Record {
 	String description() default "";
 	boolean repeatable() default false;
 	int order();
+	String[] groups() default {"GLOBAL"};
 
 }

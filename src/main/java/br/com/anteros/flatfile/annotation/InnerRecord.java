@@ -29,5 +29,6 @@ public @interface InnerRecord {
 	String recordOwner();
 	boolean repeatable() default false;
 	int order();
+	String[] groups() default {"GLOBAL"};
 
 }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-package br.com.anteros.flatfile.annotation;
+package br.com.anteros.flatfile;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -33,7 +33,12 @@ import javax.xml.bind.Marshaller;
 import br.com.anteros.core.utils.Assert;
 import br.com.anteros.core.utils.IOUtils;
 import br.com.anteros.core.utils.ReflectionUtils;
-import br.com.anteros.flatfile.Texgit;
+import br.com.anteros.flatfile.annotation.FlatFile;
+import br.com.anteros.flatfile.annotation.Formats;
+import br.com.anteros.flatfile.annotation.IdType;
+import br.com.anteros.flatfile.annotation.InnerRecord;
+import br.com.anteros.flatfile.annotation.Record;
+import br.com.anteros.flatfile.annotation.RecordData;
 import br.com.anteros.flatfile.language.EnumTypes;
 import br.com.anteros.flatfile.language.MetaField;
 import br.com.anteros.flatfile.language.MetaFlatFile;
@@ -52,7 +57,7 @@ public class FlatFileManager {
 
 	}
 
-	private void readAnnotations(Object model) throws FlatFileManagerException, JAXBException {
+	private void readAnnotations(Object model, String[] groups) throws FlatFileManagerException, JAXBException {
 
 		this.metadata = new MetaTexgit();
 
@@ -101,26 +106,31 @@ public class FlatFileManager {
 		List<Record> records = readRecords(fieldsSet);
 
 		for (Record annotation : records) {
-			Field field = getFieldByRecord(fieldsSet, annotation);
+			if (isContainsGroups(groups, annotation.groups())) {
+				Field field = getFieldByRecord(fieldsSet, annotation);
 
-			MetaRecord metaRecord = new MetaRecord();
-			metaRecord.setDescription(annotation.description());
-			metaRecord.setName(annotation.name());
-			metaRecord.setRepeatable(annotation.repeatable());
-			metaRecord.setField(field);
-			if (annotation.repeatable() && !ReflectionUtils.isImplementsInterface(field.getType(), RecordData.class)) {
-				throw new FlatFileManagerException(
-						"A classe " + field.getType().getName() + " não implementa a interface RecordData.");
-			}
+				MetaRecord metaRecord = new MetaRecord();
+				metaRecord.setDescription(annotation.description());
+				metaRecord.setName(annotation.name());
+				metaRecord.setRepeatable(annotation.repeatable());
+				metaRecord.setField(field);
+				metaRecord.setGroups(annotation.groups());
+				if (annotation.repeatable()
+						&& !ReflectionUtils.isImplementsInterface(field.getType(), RecordData.class)) {
+					throw new FlatFileManagerException(
+							"A classe " + field.getType().getName() + " não implementa a interface RecordData.");
+				}
 
-			metaGroupRecords.getRecords().add(metaRecord);
+				metaGroupRecords.getRecords().add(metaRecord);
 
-			MetaGroupFields metaGroupFields = new MetaGroupFields();
-			metaRecord.setGroupOfFields(metaGroupFields);
+				MetaGroupFields metaGroupFields = new MetaGroupFields();
+				metaRecord.setGroupOfFields(metaGroupFields);
 
-			readFields(metaGroupFields, field.getType());
-			if (metaGroupFields.getFields().isEmpty()) {
-				throw new FlatFileManagerException("Não foram encontrados campos para o registro " + annotation.name());
+				readFields(metaGroupFields, field.getType());
+				if (metaGroupFields.getFields().isEmpty()) {
+					throw new FlatFileManagerException(
+							"Não foram encontrados campos para o registro " + annotation.name());
+				}
 			}
 		}
 
@@ -130,30 +140,33 @@ public class FlatFileManager {
 		List<InnerRecord> innerRecords = readInnerRecords(fieldsSet);
 
 		for (InnerRecord annotation : innerRecords) {
-			Field field = getFieldByInnerRecord(fieldsSet, annotation);
-			MetaRecord recordOwner = findRecordOwner(metaFlatFile, annotation.recordOwner());
-			if (recordOwner == null) {
-				// throw new FlatFileManagerException("Não foi encontrado
-				// registro pai " + annotation.recordOwner()
-				// + " usado no registro filho " + annotation.name());
-			}
-			MetaRecord innerRecord = new MetaRecord();
-			if (recordOwner.getGroupOfInnerRecords() == null) {
-				recordOwner.setGroupOfInnerRecords(new MetaGroupRecords());
-			}
-			recordOwner.getGroupOfInnerRecords().getRecords().add(innerRecord);
-			innerRecord.setName(annotation.name());
-			innerRecord.setDescription(annotation.description());
-			innerRecord.setRepeatable(annotation.repeatable());
-			innerRecord.setField(field);
+			if (isContainsGroups(groups, annotation.groups())) {
+				Field field = getFieldByInnerRecord(fieldsSet, annotation);
+				MetaRecord recordOwner = findRecordOwner(metaFlatFile, annotation.recordOwner());
+				if (recordOwner == null) {
+					// throw new FlatFileManagerException("Não foi encontrado
+					// registro pai " + annotation.recordOwner()
+					// + " usado no registro filho " + annotation.name());
+				}
+				MetaRecord innerRecord = new MetaRecord();
+				if (recordOwner.getGroupOfInnerRecords() == null) {
+					recordOwner.setGroupOfInnerRecords(new MetaGroupRecords());
+				}
+				recordOwner.getGroupOfInnerRecords().getRecords().add(innerRecord);
+				innerRecord.setName(annotation.name());
+				innerRecord.setDescription(annotation.description());
+				innerRecord.setRepeatable(annotation.repeatable());
+				innerRecord.setField(field);
+				innerRecord.setGroups(annotation.groups());
 
-			MetaGroupFields metaGroupFields = new MetaGroupFields();
-			innerRecord.setGroupOfFields(metaGroupFields);
+				MetaGroupFields metaGroupFields = new MetaGroupFields();
+				innerRecord.setGroupOfFields(metaGroupFields);
 
-			readFields(metaGroupFields, field.getType());
-			if (metaGroupFields.getFields().isEmpty()) {
-				throw new FlatFileManagerException(
-						"Não foram encontrados campos para o registro filho " + annotation.name());
+				readFields(metaGroupFields, field.getType());
+				if (metaGroupFields.getFields().isEmpty()) {
+					throw new FlatFileManagerException(
+							"Não foram encontrados campos para o registro filho " + annotation.name());
+				}
 			}
 		}
 
@@ -264,14 +277,14 @@ public class FlatFileManager {
 				idType.setValue(annotationIdType.value());
 				metaGroupFields.setIdType(idType);
 			}
-			if (fieldRecord.isAnnotationPresent(
-					br.com.anteros.flatfile.annotation.Field.class)) {
+			if (fieldRecord.isAnnotationPresent(br.com.anteros.flatfile.annotation.Field.class)) {
 				br.com.anteros.flatfile.annotation.Field annotationField = fieldRecord
 						.getAnnotation(br.com.anteros.flatfile.annotation.Field.class);
 
-				if (annotationField.type().equals(EnumTypes.BIGDECIMAL) && annotationField.format() == Formats.NONE ) {
+				if (annotationField.type().equals(EnumTypes.BIGDECIMAL) && annotationField.format() == Formats.NONE) {
 					throw new FlatFileManagerException(
-							"Para campos do tipo BIGDECIMAL informe o format para o mesmo. Campo "+annotationField.name()+".");
+							"Para campos do tipo BIGDECIMAL informe o format para o mesmo. Campo "
+									+ annotationField.name() + ".");
 				}
 				MetaField metaField = new MetaField();
 				metaField.setBlankAccepted(annotationField.blankAccepted());
@@ -299,35 +312,40 @@ public class FlatFileManager {
 
 	public byte[] generate(Object model) throws FlatFileManagerException, JAXBException, IllegalArgumentException,
 			IllegalAccessException, IOException {
+		return generate(model, new String[] { "GLOBAL" });
+	}
+
+	public byte[] generate(Object model, String[] groups) throws FlatFileManagerException, JAXBException,
+			IllegalArgumentException, IllegalAccessException, IOException {
 
 		Assert.notNull(model, "Informe um objeto que contenha o modelo de dados.");
 
 		if (!model.getClass().isAnnotationPresent(FlatFile.class)) {
 			throw new FlatFileManagerException("O objeto passado como modelo não é um válido.");
 		}
-		readAnnotations(model);
+		readAnnotations(model, groups);
 
-		br.com.anteros.flatfile.FlatFile<br.com.anteros.flatfile.Record> flatFile = Texgit
-				.createFlatFile(metadata);
+		br.com.anteros.flatfile.FlatFile<br.com.anteros.flatfile.Record> flatFile = Texgit.createFlatFile(metadata);
 
 		for (MetaRecord metaRecord : metadata.getFlatFile().getGroupOfRecords().getRecords()) {
-			if (metaRecord.isRepeatable()) {
-				RecordData recordData = (RecordData) metaRecord.getField().get(model);
-				for (int i = 0; i < recordData.getNumberOfRecords(); i++) {
-					recordData.readRowData(i);
-					br.com.anteros.flatfile.Record record = getRecordByModel(flatFile,
-							metaRecord, recordData);
-					flatFile.addRecord(record);
-					if (metaRecord.getGroupOfInnerRecords() != null
-							&& metaRecord.getGroupOfInnerRecords().getRecords().size() > 0) {
-						for (MetaRecord innerRecord : metaRecord.getGroupOfInnerRecords().getRecords()) {
-							RecordData innerRecordData = (RecordData) innerRecord.getField().get(model);
-							record.addInnerRecord(getRecordByModel(flatFile, innerRecord, innerRecordData));
+			if (isContainsGroups(groups, metaRecord.getGroups())) {
+				if (metaRecord.isRepeatable()) {
+					RecordData recordData = (RecordData) metaRecord.getField().get(model);
+					for (int i = 0; i < recordData.getNumberOfRecords(); i++) {
+						recordData.readRowData(i);
+						br.com.anteros.flatfile.Record record = getRecordByModel(flatFile, metaRecord, recordData);
+						flatFile.addRecord(record);
+						if (metaRecord.getGroupOfInnerRecords() != null
+								&& metaRecord.getGroupOfInnerRecords().getRecords().size() > 0) {
+							for (MetaRecord innerRecord : metaRecord.getGroupOfInnerRecords().getRecords()) {
+								RecordData innerRecordData = (RecordData) innerRecord.getField().get(model);
+								record.addInnerRecord(getRecordByModel(flatFile, innerRecord, innerRecordData));
+							}
 						}
 					}
+				} else {
+					flatFile.addRecord(getRecordByModel(flatFile, metaRecord, metaRecord.getField().get(model)));
 				}
-			} else {
-				flatFile.addRecord(getRecordByModel(flatFile, metaRecord, metaRecord.getField().get(model)));
 			}
 		}
 
@@ -337,9 +355,19 @@ public class FlatFileManager {
 		return baos.toByteArray();
 	}
 
+	protected boolean isContainsGroups(String[] filter, String[] groups) {
+		List<String> groupList = Arrays.asList(groups);
+		for (String group : filter) {
+			if (groupList.contains(group)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	private br.com.anteros.flatfile.Record getRecordByModel(
-			br.com.anteros.flatfile.FlatFile<br.com.anteros.flatfile.Record> flatFile,
-			MetaRecord metaRecord, Object objectRecord) throws IllegalArgumentException, IllegalAccessException {
+			br.com.anteros.flatfile.FlatFile<br.com.anteros.flatfile.Record> flatFile, MetaRecord metaRecord,
+			Object objectRecord) throws IllegalArgumentException, IllegalAccessException {
 		br.com.anteros.flatfile.Record result = flatFile.createRecord(metaRecord.getName());
 		for (MetaField field : metaRecord.getGroupOfFields().getFields()) {
 			Object value = field.getField().get(objectRecord);
