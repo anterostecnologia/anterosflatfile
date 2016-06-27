@@ -17,6 +17,7 @@ package br.com.anteros.flatfile;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -309,7 +310,39 @@ public class FlatFileManager {
 		}
 		return null;
 	}
+	
+	public br.com.anteros.flatfile.FlatFile<br.com.anteros.flatfile.Record> read(Object model, InputStream dataInputStream) throws FlatFileManagerException, JAXBException, IllegalArgumentException,
+	IllegalAccessException, IOException {
+		Assert.notNull(model, "Informe um objeto que contenha o modelo de dados.");
 
+		if (!model.getClass().isAnnotationPresent(FlatFile.class)) {
+			throw new FlatFileManagerException("O objeto passado como modelo não é um válido.");
+		}
+		readAnnotations(model, new String[]{"GLOBAL"});
+
+		br.com.anteros.flatfile.FlatFile<br.com.anteros.flatfile.Record> flatFile = Texgit.createFlatFile(metadata);
+		
+		List<String> lines = IOUtils.readLines(dataInputStream);
+		flatFile.read(lines);
+		return flatFile;
+	}
+	
+	public br.com.anteros.flatfile.FlatFile<br.com.anteros.flatfile.Record> read(Object model, String[] groups, InputStream dataInputStream) throws FlatFileManagerException, JAXBException, IllegalArgumentException,
+	IllegalAccessException, IOException {
+		Assert.notNull(model, "Informe um objeto que contenha o modelo de dados.");
+
+		if (!model.getClass().isAnnotationPresent(FlatFile.class)) {
+			throw new FlatFileManagerException("O objeto passado como modelo não é um válido.");
+		}
+		readAnnotations(model, groups);
+
+		br.com.anteros.flatfile.FlatFile<br.com.anteros.flatfile.Record> flatFile = Texgit.createFlatFile(metadata);
+		
+		List<String> lines = IOUtils.readLines(dataInputStream);
+		flatFile.read(lines);
+		return flatFile;
+	}
+ 
 	public byte[] generate(Object model) throws FlatFileManagerException, JAXBException, IllegalArgumentException,
 			IllegalAccessException, IOException {
 		return generate(model, new String[] { "GLOBAL" });
