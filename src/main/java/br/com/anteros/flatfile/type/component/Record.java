@@ -75,7 +75,6 @@ public class Record extends BlockOfFields implements br.com.anteros.flatfile.Rec
 		try {
 			
 			ffID = getIdType().clone();
-			ffID.setName("");
 			
 		} catch (CloneNotSupportedException e) {
 			
