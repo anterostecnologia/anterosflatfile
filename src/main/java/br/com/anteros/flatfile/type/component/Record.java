@@ -75,13 +75,14 @@ public class Record extends BlockOfFields implements br.com.anteros.flatfile.Rec
 		try {
 			
 			ffID = getIdType().clone();
-			
+			ffID.clearName();
+						
 		} catch (CloneNotSupportedException e) {
 			
 			throw new UnsupportedOperationException(format("Quebra de contrato [%s] não suporta clonagem!",ObjectUtils.whenNull(ffID, "FixedField", ffID.getClass())), e);
 		}
 		
-		getIdType().read(lineRecord.substring(getIdPosition(), getIdPosition() + getIdType().getFixedLength())); 
+		ffID.read(lineRecord.substring(getIdPosition(), getIdPosition() + getIdType().getFixedLength())); 
 
 		return ffID;
 	}

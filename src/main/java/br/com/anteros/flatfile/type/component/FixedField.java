@@ -218,4 +218,6 @@ public class FixedField<G> extends Field<G> implements br.com.anteros.flatfile.t
 				, ObjectUtils.whenNull(this.truncate, StringUtils.EMPTY));
 	}
 
+	
+
 }

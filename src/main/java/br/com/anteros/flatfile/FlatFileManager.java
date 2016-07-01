@@ -58,7 +58,7 @@ public class FlatFileManager {
 
 	}
 
-	private void readAnnotations(Object model, String[] groups) throws FlatFileManagerException, JAXBException {
+	private byte[] readAnnotations(Object model, String[] groups) throws FlatFileManagerException, JAXBException {
 
 		this.metadata = new MetaTexgit();
 
@@ -107,7 +107,7 @@ public class FlatFileManager {
 		List<Record> records = readRecords(fieldsSet);
 
 		for (Record annotation : records) {
-			if (isContainsGroups(groups, annotation.groups())) {
+			if (isContainsGroups(groups, annotation.groups()) || (groups.length==0)) {
 				Field field = getFieldByRecord(fieldsSet, annotation);
 
 				MetaRecord metaRecord = new MetaRecord();
@@ -141,7 +141,7 @@ public class FlatFileManager {
 		List<InnerRecord> innerRecords = readInnerRecords(fieldsSet);
 
 		for (InnerRecord annotation : innerRecords) {
-			if (isContainsGroups(groups, annotation.groups())) {
+			if (isContainsGroups(groups, annotation.groups()) || groups.length==0) {
 				Field field = getFieldByInnerRecord(fieldsSet, annotation);
 				MetaRecord recordOwner = findRecordOwner(metaFlatFile, annotation.recordOwner());
 				if (recordOwner == null) {
@@ -182,7 +182,7 @@ public class FlatFileManager {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		jaxbMarshaller.marshal(metadata, baos);
 
-		System.out.println(new String(baos.toByteArray()));
+		return baos.toByteArray();
 	}
 
 	private Field getFieldByInnerRecord(Set<Field> fieldsSet, InnerRecord annotation) {
@@ -273,7 +273,7 @@ public class FlatFileManager {
 				idType.setBlankAccepted(annotationIdType.blankAccepted());
 				idType.setLength(annotationIdType.length());
 				idType.setName(annotationIdType.name());
-				idType.setPosition(annotationIdType.position());
+				idType.setPosition(annotationIdType.positionField());
 				idType.setType(EnumTypes.STRING);
 				idType.setValue(annotationIdType.value());
 				metaGroupFields.setIdType(idType);
@@ -309,6 +309,10 @@ public class FlatFileManager {
 			}
 		}
 		return null;
+	}
+	
+	public byte[] getXMLSchema(Object model) throws FlatFileManagerException, JAXBException{
+		return readAnnotations(model, new String[]{});
 	}
 	
 	public br.com.anteros.flatfile.FlatFile<br.com.anteros.flatfile.Record> read(Object model, InputStream dataInputStream) throws FlatFileManagerException, JAXBException, IllegalArgumentException,

@@ -205,28 +205,19 @@ public class Field<G> implements br.com.anteros.flatfile.type.Field<G>{
 	}
 
 	@SuppressWarnings("unchecked")
-	private void readDateField(String str) {
-		
-		try {
-			
-			if(StringUtils.isBlank(str)){
-				
-				if(isBlankAccepted()){
-					
-					value = (G) getInvalidDate();
-					
-				}else{
-					
+	private void readDateField(String str) {		
+		try {			
+			if(StringUtils.isBlank(str) || StringUtils.repeat("0", str.length()).equals(str)){
+				if(isBlankAccepted()){					
+					value = null;					
+				}else{					
 					new IllegalArgumentException(format("Campo data vazio não permitido: [%s]!",str));
-				}
-				
-			}else{
-				
+				}				
+			}else{				
 				value = (G) formatter.parseObject(str);
-			}					
+			}				
 			
-		} catch (ParseException e) {
-			
+		} catch (ParseException e) {			
 			throwReadError(e, str);
 		}
 	}
@@ -394,5 +385,10 @@ public class Field<G> implements br.com.anteros.flatfile.type.Field<G>{
 	public String toString() {
 		return "Field [name=" + name + ", value=" + value + ", formatter=" + formatter + ", blankAccepted="
 				+ blankAccepted + "]";
+	}
+	
+	public void clearName() {
+		this.name = "";
+		
 	}
 }

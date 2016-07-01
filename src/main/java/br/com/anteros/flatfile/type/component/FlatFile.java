@@ -126,7 +126,7 @@ public class FlatFile implements br.com.anteros.flatfile.FlatFile<br.com.anteros
 								
 								typeRecord = record.readID(line);
 								
-								read = record.getIdType().getName().equals(typeRecord.getName()) && (lineIndex < str.size());
+								read = record.getIdType().getValue().equals(typeRecord.getValue()) && (lineIndex < str.size()); 
 
 								if(read){
 									
@@ -148,7 +148,7 @@ public class FlatFile implements br.com.anteros.flatfile.FlatFile<br.com.anteros
 								line = str.get(lineIndex);
 								typeRecord = record.readID(line);
 								
-								if(record.getIdType().getName().equals(typeRecord.getName())){		
+								if(record.getIdType().getValue().equals(typeRecord.getValue())){
 									record.read(line);
 									lineIndex++;
 									addRecord(record);

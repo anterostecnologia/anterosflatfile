@@ -27,6 +27,6 @@ public @interface IdType {
 	String name();
 	String value();
 	int length();
-	int position();
+	int positionField();
 	boolean blankAccepted() default true;
 }
