@@ -225,14 +225,14 @@ public class Field<G> implements br.com.anteros.flatfile.type.Field<G>{
 	@SuppressWarnings("unchecked")
 	private void readStringOrNumericField(String str) {
 		
-		str = parseNumber(str);
+		str = parseNumber(str.trim());
 		
 		Class<?> clazz = value.getClass();
 		
 		if(clazz.equals(String.class)){
-			value = (G) str;
+			value = (G) str.trim();
 		}else{
-			readNumeric(clazz,str);
+			readNumeric(clazz,str.trim());
 		}
 	}
 	
@@ -246,7 +246,7 @@ public class Field<G> implements br.com.anteros.flatfile.type.Field<G>{
 				if (cons.getParameterTypes()[0].equals(String.class)){
 					try {
 						
-						value = (G) cons.newInstance(str);
+						value = (G) cons.newInstance(str.trim());
 
 					} catch (Exception e) {
 						

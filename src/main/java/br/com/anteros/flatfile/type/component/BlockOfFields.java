@@ -17,8 +17,6 @@ package br.com.anteros.flatfile.type.component;
 
 import static java.lang.String.format;
 
-import java.util.Collections;
-
 import br.com.anteros.core.utils.Assert;
 import br.com.anteros.core.utils.ObjectUtils;
 import br.com.anteros.flatfile.type.AbstractStringOfFields;
@@ -96,7 +94,7 @@ public class BlockOfFields extends AbstractStringOfFields<FixedField<?>> impleme
 		Assert.notNull(getFields(), "Fields == null");
 		Assert.notEmpty(getFields(), "Coleção de fields vazia!");
 
-		if (isSizeAsDefinaed() && isLengthWithDefinaed(lineOfFields.length())) {
+		if (isSizeAsDefined() && isLengthWithDefined(lineOfFields.length())) {
 
 			StringBuilder builder = new StringBuilder(lineOfFields);
 
@@ -128,7 +126,7 @@ public class BlockOfFields extends AbstractStringOfFields<FixedField<?>> impleme
 
 		String str = null;
 
-		isSizeAsDefinaed();
+		isSizeAsDefined();
 
 		str = super.write();
 
@@ -146,28 +144,28 @@ public class BlockOfFields extends AbstractStringOfFields<FixedField<?>> impleme
 	
 	public boolean isFixedAsDefined() throws IllegalStateException {
 		
-		return (isSizeAsDefinaed() && isLengthWithDefinaed());
+		return (isSizeAsDefined() && isLengthWithDefined());
 	}
 	
-	private boolean isLengthWithDefinaed(){
+	private boolean isLengthWithDefined(){
 		
-		return isLengthWithDefinaed(instantLength);
+		return isLengthWithDefined(instantLength);
 	}
 	
-	private boolean isLengthWithDefinaed(int length){
+	private boolean isLengthWithDefined(int length){
 		
 		if(length == getFixedLength())
 				return true;
 		else
-			throw new IllegalStateException(format("O comprimento da string [%s] é incompátivel com o definido [%s] no layout do registro!",length,getFixedLength()));
+			throw new IllegalStateException(format("O comprimento da string [%s] é incompatível com o definido [%s] no layout do registro!",length,getFixedLength()));
 	}
 	
-	private boolean isSizeAsDefinaed(){
+	private boolean isSizeAsDefined(){
 		
 		if(size() == getFixedSize())
 				return true;
 		else
-			throw new IllegalStateException(format("O número de fields [%s] é incompátivel com o definido [%s]!", size(), getFixedSize()));
+			throw new IllegalStateException(format("O número de fields [%s] é incompatível com o definido [%s]!", size(), getFixedSize()));
 	}
 
 	/**
