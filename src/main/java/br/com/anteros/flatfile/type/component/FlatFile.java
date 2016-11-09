@@ -107,7 +107,6 @@ public class FlatFile implements br.com.anteros.flatfile.FlatFile<br.com.anteros
 				Record record = null;
 				
 				for(String id : recordsOrder){
-					
 					record = recordFactory.create(id);
 					
 					try{

@@ -34,6 +34,7 @@ import javax.xml.bind.Marshaller;
 import br.com.anteros.core.utils.Assert;
 import br.com.anteros.core.utils.IOUtils;
 import br.com.anteros.core.utils.ReflectionUtils;
+import br.com.anteros.core.utils.StringUtils;
 import br.com.anteros.flatfile.annotation.FlatFile;
 import br.com.anteros.flatfile.annotation.Formats;
 import br.com.anteros.flatfile.annotation.IdType;
@@ -63,6 +64,8 @@ public class FlatFileManager {
 		this.metadata = new MetaTexgit();
 
 		FlatFile flatFileAnnotation = model.getClass().getAnnotation(FlatFile.class);
+
+		Assert.notNull(flatFileAnnotation, "Não foi encontrado anotação @FlatFile no modelo passado como parâmetro.");
 
 		/**
 		 * Cria layout
@@ -107,7 +110,7 @@ public class FlatFileManager {
 		List<Record> records = readRecords(fieldsSet);
 
 		for (Record annotation : records) {
-			if (isContainsGroups(groups, annotation.groups()) || (groups.length==0)) {
+			if (isContainsGroups(groups, annotation.groups()) || (groups.length == 0)) {
 				Field field = getFieldByRecord(fieldsSet, annotation);
 
 				MetaRecord metaRecord = new MetaRecord();
@@ -141,7 +144,7 @@ public class FlatFileManager {
 		List<InnerRecord> innerRecords = readInnerRecords(fieldsSet);
 
 		for (InnerRecord annotation : innerRecords) {
-			if (isContainsGroups(groups, annotation.groups()) || groups.length==0) {
+			if (isContainsGroups(groups, annotation.groups()) || groups.length == 0) {
 				Field field = getFieldByInnerRecord(fieldsSet, annotation);
 				MetaRecord recordOwner = findRecordOwner(metaFlatFile, annotation.recordOwner());
 				if (recordOwner == null) {
@@ -310,29 +313,36 @@ public class FlatFileManager {
 		}
 		return null;
 	}
-	
-	public byte[] getXMLSchema(Object model) throws FlatFileManagerException, JAXBException{
-		return readAnnotations(model, new String[]{});
+
+	public byte[] getXMLSchema(Object model) throws FlatFileManagerException, JAXBException {
+		return readAnnotations(model, new String[] {});
 	}
-	
-	public br.com.anteros.flatfile.FlatFile<br.com.anteros.flatfile.Record> read(Object model, InputStream dataInputStream) throws FlatFileManagerException, JAXBException, IllegalArgumentException,
-	IllegalAccessException, IOException {
+
+	public br.com.anteros.flatfile.FlatFile<br.com.anteros.flatfile.Record> read(Object model,
+			InputStream dataInputStream) throws FlatFileManagerException, JAXBException, IllegalArgumentException,
+			IllegalAccessException, IOException {
 		Assert.notNull(model, "Informe um objeto que contenha o modelo de dados.");
 
 		if (!model.getClass().isAnnotationPresent(FlatFile.class)) {
 			throw new FlatFileManagerException("O objeto passado como modelo não é um válido.");
 		}
-		readAnnotations(model, new String[]{"GLOBAL"});
+		readAnnotations(model, new String[] { "GLOBAL" });
 
 		br.com.anteros.flatfile.FlatFile<br.com.anteros.flatfile.Record> flatFile = Texgit.createFlatFile(metadata);
-		
+
 		List<String> lines = IOUtils.readLines(dataInputStream);
-		flatFile.read(lines);
+		List<String> sanitizedLines = new ArrayList<String>();
+		for (String line : lines) {
+			if (StringUtils.isNotBlank(line))
+				sanitizedLines.add(line);
+		}
+		flatFile.read(sanitizedLines);
 		return flatFile;
 	}
-	
-	public br.com.anteros.flatfile.FlatFile<br.com.anteros.flatfile.Record> read(Object model, String[] groups, InputStream dataInputStream) throws FlatFileManagerException, JAXBException, IllegalArgumentException,
-	IllegalAccessException, IOException {
+
+	public br.com.anteros.flatfile.FlatFile<br.com.anteros.flatfile.Record> read(Object model, String[] groups,
+			InputStream dataInputStream) throws FlatFileManagerException, JAXBException, IllegalArgumentException,
+			IllegalAccessException, IOException {
 		Assert.notNull(model, "Informe um objeto que contenha o modelo de dados.");
 
 		if (!model.getClass().isAnnotationPresent(FlatFile.class)) {
@@ -341,12 +351,17 @@ public class FlatFileManager {
 		readAnnotations(model, groups);
 
 		br.com.anteros.flatfile.FlatFile<br.com.anteros.flatfile.Record> flatFile = Texgit.createFlatFile(metadata);
-		
+
 		List<String> lines = IOUtils.readLines(dataInputStream);
-		flatFile.read(lines);
+		List<String> sanitizedLines = new ArrayList<String>();
+		for (String line : lines) {
+			if (StringUtils.isNotBlank(line))
+				sanitizedLines.add(line);
+		}
+		flatFile.read(sanitizedLines);
 		return flatFile;
 	}
- 
+
 	public byte[] generate(Object model) throws FlatFileManagerException, JAXBException, IllegalArgumentException,
 			IllegalAccessException, IOException {
 		return generate(model, new String[] { "GLOBAL" });
