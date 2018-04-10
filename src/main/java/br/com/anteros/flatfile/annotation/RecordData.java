@@ -19,6 +19,6 @@ public interface RecordData {
 	
 	public int getNumberOfRecords();
 	
-	public void readRowData(int row);
+	public void readRowData(int row, int sequence);
 
 }

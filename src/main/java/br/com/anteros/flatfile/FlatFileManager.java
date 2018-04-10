@@ -148,9 +148,7 @@ public class FlatFileManager {
 				Field field = getFieldByInnerRecord(fieldsSet, annotation);
 				MetaRecord recordOwner = findRecordOwner(metaFlatFile, annotation.recordOwner());
 				if (recordOwner == null) {
-					// throw new FlatFileManagerException("Não foi encontrado
-					// registro pai " + annotation.recordOwner()
-					// + " usado no registro filho " + annotation.name());
+					 throw new FlatFileManagerException("Não foi encontrado registro pai " + annotation.recordOwner() + " usado no registro filho " + annotation.name());
 				}
 				MetaRecord innerRecord = new MetaRecord();
 				if (recordOwner.getGroupOfInnerRecords() == null) {
@@ -379,24 +377,33 @@ public class FlatFileManager {
 
 		br.com.anteros.flatfile.FlatFile<br.com.anteros.flatfile.Record> flatFile = Texgit.createFlatFile(metadata);
 
+		int countRows = 0;
 		for (MetaRecord metaRecord : metadata.getFlatFile().getGroupOfRecords().getRecords()) {
 			if (isContainsGroups(groups, metaRecord.getGroups())) {
 				if (metaRecord.isRepeatable()) {
+					int countRepeatable = 0;
 					RecordData recordData = (RecordData) metaRecord.getField().get(model);
 					for (int i = 0; i < recordData.getNumberOfRecords(); i++) {
-						recordData.readRowData(i);
+						countRows++;
+						countRepeatable++;
+						recordData.readRowData(i, countRepeatable);
 						br.com.anteros.flatfile.Record record = getRecordByModel(flatFile, metaRecord, recordData);
 						flatFile.addRecord(record);
-						if (metaRecord.getGroupOfInnerRecords() != null
-								&& metaRecord.getGroupOfInnerRecords().getRecords().size() > 0) {
+						if (metaRecord.getGroupOfInnerRecords() != null && metaRecord.getGroupOfInnerRecords().getRecords().size() > 0) {
 							for (MetaRecord innerRecord : metaRecord.getGroupOfInnerRecords().getRecords()) {
 								RecordData innerRecordData = (RecordData) innerRecord.getField().get(model);
+								countRows++;
+								countRepeatable++;
+								innerRecordData.readRowData(i, countRepeatable);
 								record.addInnerRecord(getRecordByModel(flatFile, innerRecord, innerRecordData));
 							}
 						}
 					}
 				} else {
-					flatFile.addRecord(getRecordByModel(flatFile, metaRecord, metaRecord.getField().get(model)));
+					countRows++;
+					RecordData rd = (RecordData) metaRecord.getField().get(model);
+					rd.readRowData(0, countRows);
+					flatFile.addRecord(getRecordByModel(flatFile, metaRecord, rd));
 				}
 			}
 		}
