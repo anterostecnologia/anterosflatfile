@@ -18,11 +18,14 @@ package br.com.anteros.flatfile;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -317,14 +320,14 @@ public class FlatFileManager {
 	}
 
 	public br.com.anteros.flatfile.FlatFile<br.com.anteros.flatfile.Record> read(Object model,
-			InputStream dataInputStream) throws FlatFileManagerException, JAXBException, IllegalArgumentException,
+			InputStream dataInputStream, String[] groups) throws FlatFileManagerException, JAXBException, IllegalArgumentException,
 			IllegalAccessException, IOException {
 		Assert.notNull(model, "Informe um objeto que contenha o modelo de dados.");
 
 		if (!model.getClass().isAnnotationPresent(FlatFile.class)) {
 			throw new FlatFileManagerException("O objeto passado como modelo não é um válido.");
 		}
-		readAnnotations(model, new String[] { "GLOBAL" });
+		readAnnotations(model, groups);
 
 		br.com.anteros.flatfile.FlatFile<br.com.anteros.flatfile.Record> flatFile = Texgit.createFlatFile(metadata);
 
@@ -409,9 +412,27 @@ public class FlatFileManager {
 		}
 
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		IOUtils.writeLines(flatFile.write(), IOUtils.LINE_SEPARATOR, baos);
+		writeLines(flatFile.write(), IOUtils.LINE_SEPARATOR, baos);
 
 		return baos.toByteArray();
+	}
+	
+	public static void writeLines(Collection<String> lines, String lineEnding, OutputStream output) throws IOException {
+		if (lines == null) {
+			return;
+		}
+		if (lineEnding == null) {
+			lineEnding = IOUtils.LINE_SEPARATOR;
+		}
+		for (Iterator<String> it = lines.iterator(); it.hasNext();) {
+			Object line = it.next();
+			if (line != null) {
+				output.write(line.toString().getBytes());
+			}
+			if (it.hasNext()) {
+				output.write(lineEnding.getBytes());
+			}
+		}
 	}
 
 	protected boolean isContainsGroups(String[] filter, String[] groups) {
