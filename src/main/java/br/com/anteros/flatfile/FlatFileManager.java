@@ -24,6 +24,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -233,7 +234,7 @@ public class FlatFileManager {
 				result.add(annotation);
 			}
 		}
-		result.sort(new Comparator<Record>() {
+		Collections.sort(result, new Comparator<Record>() {
 			public int compare(Record o1, Record o2) {
 				return Integer.valueOf(o1.order()).compareTo(Integer.valueOf(o2.order()));
 			}
@@ -249,7 +250,7 @@ public class FlatFileManager {
 				result.add(annotation);
 			}
 		}
-		result.sort(new Comparator<InnerRecord>() {
+		Collections.sort(result, new Comparator<InnerRecord>() {
 			public int compare(InnerRecord o1, InnerRecord o2) {
 				return Integer.valueOf(o1.order()).compareTo(Integer.valueOf(o2.order()));
 			}
