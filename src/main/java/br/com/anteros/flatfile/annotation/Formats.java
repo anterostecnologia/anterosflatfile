@@ -19,7 +19,7 @@ import br.com.anteros.flatfile.language.EnumFormats;
 
 public enum Formats {
 
-	NONE, DATE_DDMMYY, DATE_DDMMYYYY, DATE_YYMMDD, DATE_YYYYMMDD, DECIMAL_D, DECIMAL_DD, DECIMAL_DDD, DECIMAL_DDDD, DECIMAL_DDDDD;
+	NONE, DATE_DDMMYY, DATE_DDMMYYYY, DATE_YYMMDD, DATE_YYYYMMDD, DATE_DD_MM_YYYY, DECIMAL_D, DECIMAL_DD, DECIMAL_DDD, DECIMAL_DDDD, DECIMAL_DDDDD;
 
 	public EnumFormats convertToEnumFormats() {
 		if (name().equals(EnumFormats.DATE_DDMMYY.name())){
@@ -40,7 +40,9 @@ public enum Formats {
 			return EnumFormats.DECIMAL_DDDD;
 		} else if (name().equals(EnumFormats.DECIMAL_DDDDD.name())){
 			return EnumFormats.DECIMAL_DDDDD;
-		}
+		} else if (name().equals(EnumFormats.DATE_DD_MM_YYYY.name())){
+		return EnumFormats.DATE_DD_MM_YYYY;
+	}
 		return null;
 		
 	}
